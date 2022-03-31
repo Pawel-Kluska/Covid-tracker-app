@@ -1,11 +1,10 @@
 package com.pawell.CovidTracker.Services;
 
-import com.pawell.CovidTracker.models.LocationStats;
+import com.pawell.CovidTracker.Models.LocationStats;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVRecord;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.PostMapping;
 
 import javax.annotation.PostConstruct;
 import java.io.IOException;
@@ -38,9 +37,13 @@ public class CoronaVirusDataService {
         Iterable<CSVRecord> records = CSVFormat.DEFAULT.withFirstRecordAsHeader().parse(reader);
         for (CSVRecord record : records) {
             LocationStats locationStat = new LocationStats();
-            locationStat.setState(record.get("Province/State"));
+            String state = record.get("Province/State");
+            if (state.equals("")) state = "None";
+            locationStat.setState(state);
             locationStat.setCountry(record.get("Country/Region"));
-            locationStat.setLatestTotalCases(Integer.parseInt(record.get(record.size()-1)));
+            int allCases = Integer.parseInt(record.get(record.size()-1));
+            locationStat.setLatestTotalCases(allCases);
+            locationStat.setNewCases(allCases - Integer.parseInt(record.get(record.size()-2)));
             newStats.add(locationStat);
         }
         this.allStats = newStats;
